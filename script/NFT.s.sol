@@ -2,15 +2,15 @@
 pragma solidity >=0.8.4;
 
 import { Script } from "forge-std/Script.sol";
-import { Foo } from "../src/Foo.sol";
+import { NFT } from "../src/NFT.sol";
 
 /// @dev See the Solidity Scripting tutorial: https://book.getfoundry.sh/tutorials/solidity-scripting
-contract DeployFoo is Script {
-    Foo internal foo;
+contract DeployNFT is Script {
+    NFT internal nft;
 
     function run() public {
         vm.startBroadcast();
-        foo = new Foo();
+        nft = new NFT("test", "TST");
         vm.stopBroadcast();
     }
 }
