@@ -11,10 +11,10 @@ contract DeployNFT is Script {
 
     function run() public {
         HelperConfig helperConfig = new HelperConfig();
-        (string memory nftName, string memory nftSymbol) = helperConfig.activeNetworkConfig();
+        (string memory nftName, string memory nftSymbol, string memory nftBaseURI) = helperConfig.activeNetworkConfig();
 
         vm.startBroadcast();
-        nft = new NFT(nftName, nftSymbol);
+        nft = new NFT(nftName, nftSymbol, nftBaseURI);
         vm.stopBroadcast();
     }
 }
