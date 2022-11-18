@@ -22,7 +22,7 @@ install :;
 update:; forge update
 
 # Builds
-build  :; forge clean && forge build --optimize --optimizer-runs 1000000
+build  :; forge build
 
 setup-yarn:
 	yarn 
