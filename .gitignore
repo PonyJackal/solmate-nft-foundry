@@ -16,11 +16,11 @@
 .pnp.*
 yarn-debug.log*
 yarn-error.log*
+.gas-snapshot
+
 
 # broadcasts
 !/broadcast
 /broadcast/*
 /broadcast/*/31337/
 
-# env files
-.env
