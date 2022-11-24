@@ -29,4 +29,95 @@ contract MockERC20Test is Test {
 
         token.mint(owner, 1e18);
     }
+
+    function test_permit() public {
+        SigUtils.Permit memory permit = SigUtils.Permit({
+            owner: owner,
+            spender: spender,
+            value: 1e18,
+            nonce: 0,
+            deadline: 1 days
+        });
+
+        bytes32 digest = sigUtils.getTypedDataHash(permit);
+
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(ownerPrivateKey, digest);
+
+        token.permit(permit.owner, permit.spender, permit.value, permit.deadline, v, r, s);
+
+        assertEq(token.allowance(owner, spender), 1e18);
+        assertEq(token.nonces(owner), 1);
+    }
+
+    function testRevert_ExpiredPermit() public {
+        SigUtils.Permit memory permit = SigUtils.Permit({
+            owner: owner,
+            spender: spender,
+            value: 1e18,
+            nonce: token.nonces(owner),
+            deadline: 1 days
+        });
+
+        bytes32 digest = sigUtils.getTypedDataHash(permit);
+
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(ownerPrivateKey, digest);
+
+        vm.warp(1 days + 1 seconds); // fast forward one second past the deadline
+
+        vm.expectRevert("PERMIT_DEADLINE_EXPIRED");
+        token.permit(permit.owner, permit.spender, permit.value, permit.deadline, v, r, s);
+    }
+
+    function testRevert_InvalidSigner() public {
+        SigUtils.Permit memory permit = SigUtils.Permit({
+            owner: owner,
+            spender: spender,
+            value: 1e18,
+            nonce: token.nonces(owner),
+            deadline: 1 days
+        });
+
+        bytes32 digest = sigUtils.getTypedDataHash(permit);
+
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(spenderPrivateKey, digest); // spender signs
+
+        vm.expectRevert("INVALID_SIGNER");
+        token.permit(permit.owner, permit.spender, permit.value, permit.deadline, v, r, s);
+    }
+
+    function testRevert_InvalidNonce() public {
+        SigUtils.Permit memory permit = SigUtils.Permit({
+            owner: owner,
+            spender: spender,
+            value: 1e18,
+            nonce: 1, // owner nonce stored on-chain is 0
+            deadline: 1 days
+        });
+
+        bytes32 digest = sigUtils.getTypedDataHash(permit);
+
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(ownerPrivateKey, digest);
+
+        vm.expectRevert("INVALID_SIGNER");
+        token.permit(permit.owner, permit.spender, permit.value, permit.deadline, v, r, s);
+    }
+
+    function testRevert_SignatureReplay() public {
+        SigUtils.Permit memory permit = SigUtils.Permit({
+            owner: owner,
+            spender: spender,
+            value: 1e18,
+            nonce: 0,
+            deadline: 1 days
+        });
+
+        bytes32 digest = sigUtils.getTypedDataHash(permit);
+
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(ownerPrivateKey, digest);
+
+        token.permit(permit.owner, permit.spender, permit.value, permit.deadline, v, r, s);
+
+        vm.expectRevert("INVALID_SIGNER");
+        token.permit(permit.owner, permit.spender, permit.value, permit.deadline, v, r, s);
+    }
 }
