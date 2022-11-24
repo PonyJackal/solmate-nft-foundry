@@ -1,17 +1,14 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.8.4;
 
-import { Test } from "forge-std/Test.sol";
-import { console2 } from "forge-std/console2.sol";
-import { PRBTest } from "@prb/test/PRBTest.sol";
-import { StdCheats } from "forge-std/StdCheats.sol";
-import { stdStorage } from "forge-std/stdStorage.sol";
+import "forge-std/Test.sol";
 import { NFT } from "../src/NFT.sol";
 import { IERC721Receiver } from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 /// @dev See the "Writing Tests" section in the Foundry Book if this is your first time with Forge.
 /// https://book.getfoundry.sh/forge/writing-tests
 contract NFTTest is Test {
+    using stdStorage for StdStorage;
     NFT private nft;
 
     function setUp() public {
@@ -64,7 +61,7 @@ contract NFTTest is Test {
         nft.mintTo{ value: 0.08 ether }(address(receiver));
         uint256 slotBalance = stdstore
             .target(address(nft))
-            .sig(nft.balance.selector)
+            .sig(nft.balanceOf.selector)
             .with_key(address(receiver))
             .find();
 
